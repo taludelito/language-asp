@@ -2,7 +2,7 @@
 'fileTypes': [
   'asp','aspx'
 ]
-'name': 'ASP (HTML3)'
+'name': 'ASP (HTML)'
 'firstLineMatch': '''(?x)
   # Hashbang
   ^\\#!.*(?:\\s|\\/)

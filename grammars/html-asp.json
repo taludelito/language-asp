@@ -2,7 +2,7 @@
 'fileTypes': [
   'asp','aspx'
 ]
-'name': 'ASP (HTML)'
+'name': 'ASP (HTML3)'
 'firstLineMatch': '''(?x)
   # Hashbang
   ^\\#!.*(?:\\s|\\/)
@@ -125,12 +125,45 @@
     ]
 'patterns': [
   {
+    # Este veio do PHP acho que pode ser removido
     'begin': '\\A#!'
     'beginCaptures':
       '0':
         'name': 'punctuation.definition.comment.asp'
     'end': '$'
     'name': 'comment.line.shebang.asp'
+  }
+  {
+    # Este veio do improved-asp-html
+    'begin': '<%=?'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.section.embedded.begin.asp'
+    'end': '%>'
+    'endCaptures':
+      '0':
+        'name': 'punctuation.section.embedded.end.asp'
+    'name': 'source.asp.embedded.html'
+    'patterns': [
+      {
+        'captures':
+          '1':
+            'name': 'punctuation.definition.comment.asp'
+        'match': '(\').*?(?=%>)'
+        'name': 'comment.line.apostrophe.asp'
+      }
+      {
+        'include': 'source.asp'
+      }
+    ]
+  }
+  {
+    'match': '<!-- ?#include (file|virtual)=(\'|")(.+)(\'|") ?-->'
+    'name': 'entity.name.tag.html'
+  }
+  {
+    'match': '<!-- ?METADATA TYPE=(\'|")typelib(\'|") (.+)-->'
+    'name': 'entity.name.tag.html'
   }
   {
     'include': 'text.html.basic'

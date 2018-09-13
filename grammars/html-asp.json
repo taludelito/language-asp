@@ -1,39 +1,180 @@
-{
-  "fileTypes": ["asp", "inc"],
-  "name": "HTML (ASP)",
-  "patterns": [
-    {
-      "begin": "<%=?",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.section.embedded.begin.asp"
-        }
-      },
-      "end": "%>",
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.section.embedded.end.asp"
-        }
-      },
-      "name": "source.asp.embedded.html",
-      "patterns": [
-        {
-          "captures": {
-            "1": {
-              "name": "punctuation.definition.comment.asp"
-            }
-          },
-          "match": "(').*?(?=%>)",
-          "name": "comment.line.apostrophe.asp"
-        },
-        {
-          "include": "source.asp"
-        }
-      ]
-    },
-    {
-      "include": "text.html.basic"
-    }
-  ],
-  "scopeName": "text.html.asp"
-}
+'scopeName': 'text.html.asp'
+'fileTypes': [
+  'asp','aspx'
+]
+'name': 'ASP (HTML3)'
+'firstLineMatch': '''(?x)
+  # Hashbang
+  ^\\#!.*(?:\\s|\\/)
+    asp\\d?
+  (?:$|\\s)
+  |
+  # Modeline
+  (?i:
+    # Emacs
+    -\\*-(?:\\s*(?=[^:;\\s]+\\s*-\\*-)|(?:.*?[;\\s]|(?<=-\\*-))mode\\s*:\\s*)
+      asp
+    (?=[\\s;]|(?<![-*])-\\*-).*?-\\*-
+    |
+    # Vim
+    (?:(?:\\s|^)vi(?:m[<=>]?\\d+|m)?|\\sex)(?=:(?=\\s*set?\\s[^\\n:]+:)|:(?!\\s*set?\\s))(?:(?:\\s|\\s*:\\s*)\\w*(?:\\s*=(?:[^\\n\\\\\\s]|\\\\.)*)?)*[\\s:](?:filetype|ft|syntax)\\s*=
+      (?:asp|phtml)
+    (?=\\s|:|$)
+  )
+  |
+  # Regular opening ASP tags
+  ^\\s*<%(?i:asp|=|\\s|$)
+'''
+'foldingStartMarker': '(/\\*|\\{\\s*$|<<<HTML)'
+'foldingStopMarker': '(\\*/|^\\s*\\}|^HTML;)'
+'injections':
+  'text.html.asp - (meta.embedded | meta.tag), L:text.html.asp meta.tag, L:source.js.embedded.html':
+    'patterns': [
+      {
+        'include': '#asp-tag'
+      }
+    ]
+  'L:source.asp string.quoted.single.sql.asp source.sql.embedded.asp':
+    'patterns': [
+      {
+        'match': '(#)(\\\\\'|[^\'])*(?=\'|$)'
+        'name': 'comment.line.number-sign.sql'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.comment.sql'
+      }
+      {
+        'match': '(--)(\\\\\'|[^\'])*(?=\'|$)'
+        'name': 'comment.line.double-dash.sql'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.comment.sql'
+      }
+      {
+        'match': '\\\\[\\\\\'`"]'
+        'name': 'constant.character.escape.asp'
+      }
+      {
+        # Unclosed strings must be captured to avoid them eating the remainder of the asp script
+        # Sample case: $sql = 'SELECT CONCAT(\'"\', TRIM(cr.code)) as code'
+        'match': '"(?=((\\\\")|[^"\'])*(\'|$))'
+        'name': 'string.quoted.double.unclosed.sql'
+      }
+    ]
+  'L:source.asp string.quoted.double.sql.asp source.sql.embedded.asp':
+    'patterns': [
+      {
+        'match': '(#)(\\\\"|[^"])*(?="|$)'
+        'name': 'comment.line.number-sign.sql'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.comment.sql'
+      }
+      {
+        'match': '(--)(\\\\"|[^"])*(?="|$)'
+        'name': 'comment.line.double-dash.sql'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.comment.sql'
+      }
+      {
+        'match': '\\\\[\\\\\'`"]'
+        'name': 'constant.character.escape.asp'
+      }
+      {
+        # language-sql has single-line rules for strings that prevent injections from working; override them
+        'match': '(\')([^\'\\\\]*)(\')'
+        'name': 'string.quoted.single.sql'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.string.begin.sql'
+          '2':
+            'patterns': [
+              {
+                'include': 'source.asp#interpolation_double_quoted'
+              }
+            ]
+          '3':
+            'name': 'punctuation.definition.string.end.sql'
+      }
+      {
+        # language-sql has single-line rules for strings that prevent injections from working; override them
+        'match': '(`)([^`\\\\]*)(`)'
+        'name': 'string.quoted.other.backtick.sql'
+        'captures':
+          '1':
+            'name': 'punctuation.definition.string.begin.sql'
+          '2':
+            'patterns': [
+              {
+                'include': 'source.asp#interpolation_double_quoted'
+              }
+            ]
+          '3':
+            'name': 'punctuation.definition.string.end.sql'
+      }
+      {
+        # Unclosed strings must be captured to avoid them eating the remainder of the asp script
+        # Sample case: $sql = 'SELECT CONCAT(\'"\', TRIM(cr.code)) as code'
+        'match': '\'(?=((\\\\\')|[^\'"])*("|$))'
+        'name': 'string.quoted.single.unclosed.sql'
+      }
+      {
+        'include': 'source.asp#interpolation_double_quoted'
+      }
+    ]
+'patterns': [
+  {
+    'begin': '\\A#!'
+    'beginCaptures':
+      '0':
+        'name': 'punctuation.definition.comment.asp'
+    'end': '$'
+    'name': 'comment.line.shebang.asp'
+  }
+  {
+    'include': 'text.html.basic'
+  }
+]
+'repository':
+  'asp-tag':
+    'patterns': [
+      {
+        'begin': '<%(?i:asp|=)?(?![^?]*%>)'
+        'beginCaptures':
+          '0':
+            'name': 'punctuation.section.embedded.begin.asp'
+        'end': '(%)>'
+        'endCaptures':
+          '0':
+            'name': 'punctuation.section.embedded.end.asp'
+          '1':
+            'name': 'source.asp'
+        'name': 'meta.embedded.block.asp'
+        'contentName': 'source.asp'
+        'patterns': [
+          {
+            'include': 'source.asp'
+          }
+        ]
+      }
+      {
+        'begin': '<%(?i:asp|=)?'
+        'beginCaptures':
+          '0':
+            'name': 'punctuation.section.embedded.begin.asp'
+        'end': '(%)>'
+        'endCaptures':
+          '0':
+            'name': 'punctuation.section.embedded.end.asp'
+          '1':
+            'name': 'source.asp'
+        'name': 'meta.embedded.line.asp'
+        'contentName': 'source.asp'
+        'patterns': [
+          {
+            'include': 'source.asp'
+          }
+        ]
+      }
+    ]
